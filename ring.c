@@ -136,21 +136,20 @@ static void ring_file_prepare_sqe(ring_file_t* handle, const char* buffer, size_
 
     PREPARE_SQE(handle);
 
+    io_uring_sqe_set_data(sqe, handle);
+    ring_loop_add_cnt(handle->handle.loop);
+
     switch (op) {
         case RING_OP_WRITE:
         {
             io_uring_prep_write(sqe, handle->fd, buffer, size, offset);
-            io_uring_sqe_set_data(sqe, handle);
             handle->handle.op = RING_OP_WRITE;
-            ring_loop_add_cnt(handle->handle.loop);
         }
             break;
         case RING_OP_READ:
         {
             io_uring_prep_read(sqe, handle->fd, (void*)buffer, size, offset);
-            io_uring_sqe_set_data(sqe, handle);
             handle->handle.op = RING_OP_READ;
-            ring_loop_add_cnt(handle->handle.loop);
         }
             break;
     }
@@ -161,37 +160,32 @@ static void ring_tcp_prepare_sqe(ring_tcp_t* handle, char* buffer, size_t size, 
 
     PREPARE_SQE(handle);
 
+    io_uring_sqe_set_data(sqe, handle);
+    ring_loop_add_cnt(handle->handle.loop);
+
     switch (op) {
         case RING_OP_READ:
         {
             io_uring_prep_recv(sqe, handle->fd, buffer, size, 0);
-            io_uring_sqe_set_data(sqe, handle);
             handle->handle.op = RING_OP_READ;
-            ring_loop_add_cnt(handle->handle.loop);
         }
             break;
         case RING_OP_WRITE:
         {
             io_uring_prep_send(sqe, handle->fd, buffer, size, 0);
-            io_uring_sqe_set_data(sqe, handle);
             handle->handle.op = RING_OP_WRITE;
-            ring_loop_add_cnt(handle->handle.loop);
         }
             break;
         case RING_OP_CONNECT:
         {
             io_uring_prep_connect(sqe, handle->fd, (struct sockaddr*)buffer, size);
-            io_uring_sqe_set_data(sqe, handle);
             handle->handle.op = RING_OP_CONNECT;
-            ring_loop_add_cnt(handle->handle.loop);
         }
             break;
         case RING_OP_CLOSE:
         {
             io_uring_prep_close(sqe, handle->fd);
-            io_uring_sqe_set_data(sqe, handle);
             handle->handle.op = RING_OP_CLOSE;
-            ring_loop_add_cnt(handle->handle.loop);
         }
             break;
     }

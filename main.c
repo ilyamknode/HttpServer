@@ -130,6 +130,17 @@ static void server_read_header_cb(client_t* client, int result) {
         return;
     }
 
+    struct stat file_info;
+
+    if (stat(requested_file, &file_info) != 0) {
+        server_close_connection(client);
+        return;
+    }
+
+    char file_size[32];
+
+    sprintf(file_size, "%zu", file_info.st_size);
+
     free(requested_file);
 
     client_file_t* file = (client_file_t*)malloc(sizeof(client_file_t));
@@ -144,6 +155,7 @@ static void server_read_header_cb(client_t* client, int result) {
     http_header_init(&header, NULL, NULL, 200);
 
     http_header_push_field(&header, "Host", HOSTNAME);
+    http_header_push_field(&header, "Content-Length", file_size);
     http_header_push_field(&header, "Connection", "closed");
 
     char buffer[512];
